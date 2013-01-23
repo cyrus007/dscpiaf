@@ -120,7 +120,7 @@ class Alarm(object):
 
 		if (len(notifs) > 0):
 			notifs.sort()
-			outfile = open(alarm_out, 'w')
+			alarmfile = open(alarm_out, 'w')
 			outfile.write("# Your security panel generated the following alarms\n")
 			for notif in notifs: 
 				tstamp = notif[0]
@@ -144,15 +144,15 @@ class Alarm(object):
 						event_str = "@ %s -> %s - %s in zone: %s\n" % (time.strftime("%H:%M:%S", tstamp), coid_action[event_type], coid_codes[event_code], self.zones[event_zone])
 					else:
 						event_str = "@ %s -> Supervisory alarm type: %s\n" % (time.strftime("%H:%M:%S", tstamp), coid_codes[event_code]) 
-					outfile.write(event_str[0:140])
-			outfile.close();
+					alarmfile.write(event_str[0:140])
+			alarmfile.close();
 		for file in eventfiles:
 			shutil.move( file, alarm_dir + '/archive/' )
 	except IOError as e:
 		logfile.write( "Could not write to file '%s':I/O error(%i): %s\n" % (alarm_out, format(e.errno,e.strerror)) )
 
-    def send(self, outfile):
-	self.payload.send(outfile)
+    def send(self, alarmfile):
+	self.payload.send(alarmfile)
 
 
 #def main():
