@@ -17,7 +17,7 @@
    asterisk'''
 
 __author__ = 'swapan@yahoo.com'
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import sys, time, shutil
 import glob, getopt
@@ -25,7 +25,14 @@ import ConfigParser
 import twitter
 
 execfile("alarm.inc")
+folder  = '/var/spool/asterisk/alarm'
+outfile = '/var/spool/asterisk/alarm/latest.txt'
+confile = '/root/.alarmconf'
+logfile = sys.stderr
 
+
+''' Class UsingTwitter interface is used to send notifications to
+    the configured twitter account.'''
 class UsingTwitter(object):
     def __init__(self, key, secret, token_key, token_secret):
 	self.api = twitter.Api(consumer_key=key,
@@ -38,6 +45,8 @@ class UsingTwitter(object):
 	status = self.api.PostUpdates(sendfile.read())
 
 
+''' Class UsingSendmail interface is used to send notifications by
+    email.'''
 class UsingSendmail(object):
     def __init__(self, account, fromuser, touser):
 	pass
@@ -46,6 +55,8 @@ class UsingSendmail(object):
 	pass
 
 
+''' Class UsingScreen interface is used to display the notifications
+    on standard output.'''
 class UsingScreen(object):
     def __init__(self):
 	pass
@@ -53,14 +64,16 @@ class UsingScreen(object):
     def send(self, alarm_out):
 	sendfile = open(alarm_out)
 	for line in sendfile:
-		print("%s" % line)
+		sys.stdout.write( line )
 	sendfile.close()
 
 
+''' Class Alarm is the main object to handle the event file parsing
+    and substitute them with human readable strings.'''
 class Alarm(object):
-    def __init__(self):
+    def __init__(self, conf_file):
 	parser = ConfigParser.ConfigParser(allow_no_value=True)
-	parser.read('/root/.alarmconf')
+	parser.read(conf_file)
 	self.protocol = parser.get('general', 'protocol')
 	self.callerid = parser.get('general', 'callerid')
 	self.callername = parser.get('general', 'callername')
@@ -77,7 +90,7 @@ class Alarm(object):
 	else:
 		self.payload = UsingScreen()
 	self.zones = []
-	for i in range(1, 40):
+	for i in range(1, 32):
 		try:
 			zone_text = parser.get('zones', 'Zone['+str(i)+']')
 			self.zones.append( zone_text )
@@ -87,8 +100,6 @@ class Alarm(object):
     def parseEvents(self, alarm_dir, alarm_out):
 	try:
 		eventfiles = glob.glob(alarm_dir + '/event-*')
-		outfile = open(alarm_out, 'w')
-		outfile.write("# Your security panel generated the following alarms\n")
 	
 		notifs = []
 		for file in eventfiles:
@@ -96,69 +107,74 @@ class Alarm(object):
        		 	parser.read(file)
 			protocol = parser.get('metadata', 'PROTOCOL')
 			if( protocol != self.protocol):
-				print("Protocol mismatch: %s vs %s" % (protocol, self.protocol)) 
+				logfile.write( "Protocol mismatch: %s vs %s" % (protocol, self.protocol) ) 
 			callerid = parser.get('metadata', 'CALLINGFROM')
 			if( callerid != self.callerid):
-				print("Calling from mismatch: %s vs %s" % (callerid, self.callerid)) 
+				logfile.write( "Calling from mismatch: %s vs %s" % (callerid, self.callerid) ) 
 			callername = parser.get('metadata', 'CALLERNAME')
 			if( callername != self.callername):
-				print("Callername mismatch: %s vs %s" % (callerid, self.callerid)) 
+				logfile.write( "Callername mismatch: %s vs %s" % (callerid, self.callerid) ) 
 			events = [];  events = parser.options('events')
-			notifs.append([time.strptime( parser.get('metadata', 'TIMESTAMP'), self.stampfmt), events])
-		notifs.sort()
+			if (len(events) > 0):
+				notifs.append([time.strptime( parser.get('metadata', 'TIMESTAMP'), self.stampfmt), events])
 
-		#Make replacements in content for each alarm code 
-		for notif in notifs: 
-			tstamp = notif[0]
-			for event in notif[1]:
-				if( event[0:4] != self.account):
-					print("Account number mismatch: %s vs %s" % (event[0:3], self.account)) 
-				if( event[4:6] != '18'):
-					print("Message type mismatch: %s vs 18" % event[4:5]) 
-				event_type  = int(event[6])
-				event_code  = event[7:10]
-				try:
-					event_group = event[10:12]	#always 01 if present
-				except:
-					pass
-				try:
-					event_zone  = int(event[12:15])	#from 000 to 040
-				except:
-					pass
-#			print( "Event=%s (Type=%s : Zone=%s : Code=%s)\n" % (event, event_type, event_zone, event_code) )
-				if( event_zone ):
-					event_str = "@ %s -> %s - %s alarm type: %s\n" % (time.strftime("%H:%M:%S", tstamp), self.zones[event_zone], coid_action[event_type], coid_codes[event_code])
-				else:
-					event_str = "@ %s -> Supervisory alarm type: %s\n" % (time.strftime("%H:%M:%S", tstamp), coid_codes[event_code]) 
-				outfile.write(event_str)
+		if (len(notifs) > 0):
+			notifs.sort()
+			outfile = open(alarm_out, 'w')
+			outfile.write("# Your security panel generated the following alarms\n")
+			for notif in notifs: 
+				tstamp = notif[0]
+				for event in notif[1]:
+					if( event[0:4] != self.account):
+						logfile.write( "Account number mismatch: %s vs %s" % (event[0:3], self.account) ) 
+					if( event[4:6] != '18'):
+						logfile.write( "Message type mismatch: %s vs 18" % event[4:5] ) 
+					event_type  = int(event[6])
+					event_code  = event[7:10]
+					try:
+						event_group = event[10:12]	#always 01 if present
+					except:
+						pass
+					try:
+						event_zone  = int(event[12:15])	#from 000 to 040
+					except:
+						pass
+#print( "Event=%s (Type=%s : Zone=%s : Code=%s)\n" % (event, event_type, event_zone, event_code) )
+					if( event_zone ):
+						event_str = "@ %s -> %s - %s in zone: %s\n" % (time.strftime("%H:%M:%S", tstamp), coid_action[event_type], coid_codes[event_code], self.zones[event_zone])
+					else:
+						event_str = "@ %s -> Supervisory alarm type: %s\n" % (time.strftime("%H:%M:%S", tstamp), coid_codes[event_code]) 
+					outfile.write(event_str[0:140])
+			outfile.close();
 		for file in eventfiles:
 			shutil.move( file, alarm_dir + '/archive/' )
-		outfile.close();
 	except IOError as e:
-		print( "Could not write to file '%s':I/O error(%i): %s\n" % (alarm_out, format(e.errno,e.strerror)))
+		logfile.write( "Could not write to file '%s':I/O error(%i): %s\n" % (alarm_out, format(e.errno,e.strerror)) )
 
     def send(self, outfile):
 	self.payload.send(outfile)
 
 
-def main():
-	try:
-		opts, args = getopt.getopt(sys.argv[1:], "hd:o:", ["help", "folder=", "outfile="])
-	except getopt.GetoptError:
-		pass
-	folder  = '/var/spool/asterisk/alarm'
-	outfile = '/var/spool/asterisk/alarm/latest.txt'
-	for opt, arg in opts:
-		if opt in ("-h", "--help"):
-			print( "%s [-h|--help] [-d|--folder <folder>] [-o|--outfile <file>]\n" % sys.argv[0] )                     
-			sys.exit()                  
-		elif opt in ("-d", "--folder"):
-			folder = arg
-		elif opt in ("-o", "--outfile"):
-			outfile = arg
-	myalarm = Alarm()
-	myalarm.parseEvents(folder, outfile)
-	myalarm.send(outfile)
+#def main():
+try:
+	opts, args = getopt.getopt(sys.argv[1:], "hc:d:o:l:", ["help", "config=", "folder=", "outfile=", "logfile="])
+except getopt.GetoptError:
+	pass
+for opt, arg in opts:
+	if opt in ("-h", "--help"):
+		print( "%s [-h|--help] [-c|--config <file>] [-d|--folder <folder>] [-o|--outfile <file>] [-l|--logfile <file>]\n" % sys.argv[0] )
+		sys.exit()                  
+	elif opt in ("-d", "--folder"):
+		folder = arg
+	elif opt in ("-o", "--outfile"):
+		outfile = arg
+	elif opt in ("-c", "--config"):
+		confile = arg
+	elif opt in ("-l", "--logfile"):
+		logfile = arg
+myalarm = Alarm(confile)
+myalarm.parseEvents(folder, outfile)
+myalarm.send(outfile)
 
-if __name__ == '__main__':
-	main()
+#if __name__ == '__main__':
+#	main()
