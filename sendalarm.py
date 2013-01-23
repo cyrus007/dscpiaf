@@ -19,7 +19,7 @@
 __author__ = 'swapan@yahoo.com'
 __version__ = '0.0.1'
 
-import os, sys, time
+import sys, time, shutil
 import glob, getopt
 import ConfigParser
 import twitter
@@ -35,7 +35,7 @@ class UsingTwitter(object):
 
     def send(self, alarm_out):
 	sendfile = open(alarm_out)
-	status = self.api.PostUpdate(sendfile.read())
+	status = self.api.PostUpdates(sendfile.read())
 
 
 class UsingSendmail(object):
@@ -53,20 +53,21 @@ class UsingScreen(object):
     def send(self, alarm_out):
 	sendfile = open(alarm_out)
 	for line in sendfile:
-		print line
+		print("%s" % line)
 	sendfile.close()
 
 
 class Alarm(object):
     def __init__(self):
 	parser = ConfigParser.ConfigParser(allow_no_value=True)
-	parser.read(glob.glob('/etc/asterisk/alarmreceiver.conf'))
-	self.stampfmt = parser.get('general', 'timestampformat')      #"%a %b %d, %Y @ %H:%M:%S %Z"
 	parser.read('/root/.alarmconf')
 	self.protocol = parser.get('general', 'protocol')
 	self.callerid = parser.get('general', 'callerid')
 	self.callername = parser.get('general', 'callername')
 	self.account = parser.get('general', 'account')
+	astconf = parser.get('general', 'alarmreceiverconf')
+	parser.read(glob.glob(astconf))
+	self.stampfmt = parser.get('general', 'timestampformat')      #"%a %b %d, %Y @ %H:%M:%S %Z"
 	self.payload = object
 	if( parser.get('general', 'payload-type') == 'twitter' ):
 		self.payload = UsingTwitter(parser.get('payload', 'consumerkey'), parser.get('payload', 'consumersecret'),
@@ -82,18 +83,16 @@ class Alarm(object):
 			self.zones.append( zone_text )
 		except ConfigParser.NoOptionError:
 			pass
-	print self.zones
-	print coid_action
 
-    def parseEvents(self, alarm_dir='/var/spool/asterisk/alarm', alarm_out='/var/spool/asterisk/alarm/latest.txt'):
+    def parseEvents(self, alarm_dir, alarm_out):
 	try:
 		eventfiles = glob.glob(alarm_dir + '/event-*')
 		outfile = open(alarm_out, 'w')
-		outfile.write("# Your security panel generated the following alarms\n\n")
+		outfile.write("# Your security panel generated the following alarms\n")
 	
 		notifs = []
-		parser = ConfigParser.ConfigParser(allow_no_value=True)
 		for file in eventfiles:
+			parser = ConfigParser.ConfigParser(allow_no_value=True)
        		 	parser.read(file)
 			protocol = parser.get('metadata', 'PROTOCOL')
 			if( protocol != self.protocol):
@@ -104,13 +103,14 @@ class Alarm(object):
 			callername = parser.get('metadata', 'CALLERNAME')
 			if( callername != self.callername):
 				print("Callername mismatch: %s vs %s" % (callerid, self.callerid)) 
-			notifs.append({ 'timestamp' : parser.get('metadata', 'TIMESTAMP'),
-			                'events' : parser.options('events') })
-	 
+			events = [];  events = parser.options('events')
+			notifs.append([time.strptime( parser.get('metadata', 'TIMESTAMP'), self.stampfmt), events])
+		notifs.sort()
+
 		#Make replacements in content for each alarm code 
 		for notif in notifs: 
-			tstamp = time.strptime(notif['timestamp'], self.stampfmt)
-			for event in notif['events']:
+			tstamp = notif[0]
+			for event in notif[1]:
 				if( event[0:4] != self.account):
 					print("Account number mismatch: %s vs %s" % (event[0:3], self.account)) 
 				if( event[4:6] != '18'):
@@ -125,15 +125,14 @@ class Alarm(object):
 					event_zone  = int(event[12:15])	#from 000 to 040
 				except:
 					pass
-				print( "Event=%s (Type=%s : Zone=%s : Code=%s)\n" % (event, event_type, event_zone, event_code) )
+#			print( "Event=%s (Type=%s : Zone=%s : Code=%s)\n" % (event, event_type, event_zone, event_code) )
 				if( event_zone ):
-					event_str = "@%s -> %s - %s alarm type: %s\n" % (time.strftime("%H:%M:%S", tstamp), self.zones[event_zone], coid_action[event_type], coid_codes[event_code])
+					event_str = "@ %s -> %s - %s alarm type: %s\n" % (time.strftime("%H:%M:%S", tstamp), self.zones[event_zone], coid_action[event_type], coid_codes[event_code])
 				else:
-					event_str = "@%s -> Supervisory alarm type: %s\n" % (time.strftime("%H:%M:%S", tstamp), coid_codes[event_code]) 
+					event_str = "@ %s -> Supervisory alarm type: %s\n" % (time.strftime("%H:%M:%S", tstamp), coid_codes[event_code]) 
 				outfile.write(event_str)
 		for file in eventfiles:
-			pass
-#			os.del( file )
+			shutil.move( file, alarm_dir + '/archive/' )
 		outfile.close();
 	except IOError as e:
 		print( "Could not write to file '%s':I/O error(%i): %s\n" % (alarm_out, format(e.errno,e.strerror)))
