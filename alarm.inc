@@ -1,28 +1,29 @@
-//Alarm codes and their descriptions 
-coid_acct = '2288'
-coid_mt = '18'
-coid_evntq = ( 1, 3, 6 )
+#Alarm codes and their descriptions 
+coid_action = { 1: 'Open',
+	       3: 'Close',
+	       6: 'Restore'
+}
 coid_codes = {
-	//Medical alarms - 100
+	#Medical alarms - 100
 	'100' : 'Medical',
 	'101' : 'Personal emergency',
 	'102' : 'Fail to report in',
-	//Fire alarms - 110
+	#Fire alarms - 110
 	'110' : 'Fire',
 	'111' : 'Smoke',
-	'112' : 'Combustion'
+	'112' : 'Combustion',
 	'113' : 'Water flow',
 	'114' : 'Heat',
 	'115' : 'Pull Station',
 	'116' : 'Duct',
 	'117' : 'Flame',
 	'118' : 'Near Alarm',
-	//Panic alarms - 120
+	#Panic alarms - 120
 	'120' : 'Panic',
 	'121' : 'Duress',
 	'122' : 'Silent',
 	'123' : 'Audible',
-	//Burglary alarms - 130
+	#Burglary alarms - 130
 	'130' : 'Burglary',
 	'131' : 'Perimeter',
 	'132' : 'Interior',
@@ -33,7 +34,7 @@ coid_codes = {
 	'137' : 'Tamper',
 	'138' : 'Near alarm',
 	'139' : 'Intrusion Verifier',
-	//General alarms - 140
+	#General alarms - 140
 	'140' : 'General alarm',
 	'141' : 'Polling loop open',
 	'142' : 'Polling loop short',
@@ -43,7 +44,7 @@ coid_codes = {
 	'146' : 'Silent Burglary',
 	'147' : 'Sensor supervision failure',
 	'14A' : 'Cross-Zone police code',
-	//24 hr non-burg alarms - 150 + 160
+	#24 hr non-burg alarms - 150 + 160
 	'150' : '24 hr non-Burglary',
 	'151' : 'Gas detected',
 	'152' : 'Refrigeration',
@@ -57,7 +58,7 @@ coid_codes = {
 	'161' : 'Loss of Air-flow',
 	'162' : 'Carbon Monoxide detected',
 	'163' : 'Tank level',
-	//Supervisory - 200 + 210
+	#Supervisory - 200 + 210
 	'200' : 'Fire Supervisory',
 	'201' : 'Low water pressure',
 	'202' : 'Low CO2',
@@ -65,7 +66,7 @@ coid_codes = {
 	'204' : 'Low water level',
 	'205' : 'Pump activated',
 	'206' : 'Pump failure',
-	//System Troubles - 300 + 310
+	#System Troubles - 300 + 310
 	'300' : 'System Trouble',
 	'301' : 'AC Loss',
 	'302' : 'Low system battery',
@@ -80,7 +81,7 @@ coid_codes = {
 	'311' : 'Battery Missing/Dead',
 	'312' : 'Power Supply Overcurrent',
 	'313' : 'Engineer Reset',
-	//Sounder / Relay Troubles -320
+	#Sounder / Relay Troubles -320
 	'320': 'Sounder/Relay',
 	'321': 'Bell 1',
 	'322': 'Bell 2',
@@ -89,7 +90,7 @@ coid_codes = {
 	'325': 'Reversing relay',
 	'326': 'Notification Appliance Ckt. # 3',
 	'327': 'Notification Appliance Ckt. #4',
-	//System Peripheral Trouble - 330 + 340
+	#System Peripheral Trouble - 330 + 340
 	'330' : 'System Peripheral trouble',
 	'331' : 'Polling loop open',
 	'332' : 'Polling loop short',
@@ -104,7 +105,7 @@ coid_codes = {
 	'342' : 'Exp. Module AC Loss',
 	'343' : 'Exp. Module self-test fail',
 	'344' : 'RF Receiver Jam Detect',
-	//Communication Troubles - 350 + 360
+	#Communication Troubles - 350 + 360
 	'350' : 'Communication trouble',
 	'351' : 'Telco 1 fault',
 	'352' : 'Telco 2 fault',
@@ -113,7 +114,7 @@ coid_codes = {
 	'355' : 'Loss of Radio supervision',
 	'356' : 'Loss of central polling',
 	'357' : 'Long Range Radio VSWR problem',
-	//Protection Loop - 370
+	#Protection Loop - 370
 	'370' : 'Protection loop',
 	'371' : 'Protection loop open',
 	'372' : 'Protection loop short',
@@ -123,7 +124,7 @@ coid_codes = {
 	'376' : 'Hold-up zone trouble',
 	'377' : 'Swinger Trouble',
 	'378' : 'Cross-zone Trouble',
-	//Sensor Trouble - 380
+	#Sensor Trouble - 380
 	'380' : 'Sensor trouble',
 	'381' : 'Loss of supervision - RF',
 	'382' : 'Loss of supervision - RPM',
@@ -137,7 +138,7 @@ coid_codes = {
 	'391' : 'Sensor Watch trouble',
 	'392' : 'Drift Compensation Error',
 	'393' : 'Maintenance Alert',
-	//Open/Close - 400, 440, 450 User
+	#Open/Close - 400, 440, 450 User
 	'400' : 'Open/Close User',
 	'401' : 'O/C by user User',
 	'402' : 'Group O/C User',
@@ -166,14 +167,14 @@ coid_codes = {
 	'464' : 'Auto-arm Time Extended',
 	'465' : 'Panic Alarm Reset',
 	'466' : 'Service On/Off Premises',
-	//Remote Access – 410
+	#Remote Access - 410
 	'411' : 'Callback request made',
 	'412' : 'Successful download/access',
 	'413' : 'Unsuccessful access',
 	'414' : 'System shutdown command received',
 	'415' : 'Dialer shutdown command received',
 	'416' : 'Successful Upload',
-	//Access control – 420 + 430
+	#Access control - 420 + 430
 	'421' : 'Access denied',
 	'422' : 'Access report by user',
 	'423' : 'Forced Access',
@@ -188,10 +189,10 @@ coid_codes = {
 	'432' : 'Access relay/trigger fail',
 	'433' : 'Access RTE shunt',
 	'434' : 'Access DSM shunt',
-	//BYPASSES / DISABLES
-	//System Disables - 500 + 510
+	#BYPASSES / DISABLES
+	#System Disables - 500 + 510
 	'501' : 'Access reader disable',
-	//Sounder / Relay Disables - 520
+	#Sounder / Relay Disables - 520
 	'520' : 'Sounder/Relay Disable',
 	'521' : 'Bell 1 disable',
 	'522' : 'Bell 2 disable',
@@ -200,14 +201,14 @@ coid_codes = {
 	'525' : 'Reversing relay disable',
 	'526' : 'Notification Appliance Ckt. # 3 disable',
 	'527' : 'Notification Appliance Ckt. # 4 disable',
-	//System Peripheral Disables - 530 + 540
+	#System Peripheral Disables - 530 + 540
 	'531' : 'Module Added',
 	'532' : 'Module Removed', 
-	//Communication Disables - 550 + 560
+	#Communication Disables - 550 + 560
 	'551' : 'Dialer disabled', 
 	'552' : 'Radio transmitter disabled', 
 	'553' : 'Remote Upload/Download disabled', 
-	//Bypasses – 570
+	#Bypasses - 570
 	'570' : 'Zone/Sensor bypass', 
 	'571' : 'Fire bypass', 
 	'572' : '24 Hour zone bypass', 
@@ -216,8 +217,8 @@ coid_codes = {
 	'575' : 'Swinger bypass', 
 	'576' : 'Access zone shunt', 
 	'577' : 'Access point bypass', 
-	//TEST / MISC.
-	//Test/Misc. – 600 + 610
+	#TEST / MISC.
+	#Test/Misc. - 600 + 610
 	'601' : 'Manual trigger test report Zone', 
 	'602' : 'Periodic test report Zone', 
 	'603' : 'Periodic RF transmission Zone', 
@@ -233,7 +234,7 @@ coid_codes = {
 	'614' : 'Fire Zone Walk Tested ', 
 	'615' : 'Panic Zone Walk Tested', 
 	'616' : 'Service Request', 
-	//Event Log – 620
+	#Event Log - 620
 	'621' : 'Event Log reset', 
 	'622' : 'Event Log 50% full', 
 	'623' : 'Event Log 90% full', 
@@ -243,26 +244,17 @@ coid_codes = {
 	'627' : 'Program mode entry', 
 	'628' : 'Program mode exit', 
 	'629' : '32 Hour Event log marker', 
-	//Scheduling – 630
+	#Scheduling - 630
 	'630' : 'Schedule change', 
 	'631' : 'Exception schedule change', 
 	'632' : 'Access schedule change', 
-	//Personnel Monitoring - 640
+	#Personnel Monitoring - 640
 	'641' : 'Senior Watch Trouble',
 	'642' : 'Latch-key Supervision',
-	//Misc. - 650
+	#Misc. - 650
 	'651' : 'Reserved for Ademco Use',
 	'652' : 'Reserved for Ademco Use',
 	'653' : 'Reserved for Ademco Use',
 	'654' : 'System Inactivity'
 }; 
-coid_group = '01'
-coid_zone = {
-	'000' : '',
-	'001' : 'Entrance Doors',
-	'002' : 'Living Area',
-	'003' : 'Patio Doors',
-	'004' : 'Bedroom windows',
-	'005' : '--NA--',
-	'006' : 'MBR windows'
-}
+#coid_group = '01'
