@@ -257,4 +257,3 @@ coid_codes = {
 	'653' : 'Reserved for Ademco Use',
 	'654' : 'System Inactivity'
 }; 
-#coid_group = '01'
