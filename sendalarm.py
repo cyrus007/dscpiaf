@@ -121,7 +121,7 @@ class Alarm(object):
 		if (len(notifs) > 0):
 			notifs.sort()
 			alarmfile = open(alarm_out, 'w')
-			outfile.write("# Your security panel generated the following alarms\n")
+			alarmfile.write("# Your security panel generated the following alarms\n")
 			for notif in notifs: 
 				tstamp = notif[0]
 				for event in notif[1]:
