@@ -7,7 +7,7 @@ This project holds a python script sendalarm.py which can be used within asteris
 > Usage: python ./sendalarm.py -c config_file -d alarm_folder -o output_file -l log_file
 
 Example configuration file
-    #Alarm configuration file to post from PiAF
+    Alarm configuration file to post from PiAF
     [general]
     protocol=ADEMCO_CONTACT_ID
     callerid=<callerid defined in asterisk extension>
