@@ -70,7 +70,7 @@ class UsingSendmail(object):
 		if status != 0:
 			logfile.write("Sendmail exit status - %s" % status)
 	except:
-		logfile.write("Could not send via twitter.")
+		logfile.write("Could not send via email.")
 
 
 ''' Class UsingScreen interface is used to display the notifications
