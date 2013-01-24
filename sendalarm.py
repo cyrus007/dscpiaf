@@ -17,12 +17,13 @@
    asterisk'''
 
 __author__ = 'swapan@yahoo.com'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
-import sys, time, shutil
+import os, sys, time, shutil
 import glob, getopt
 import ConfigParser
 import twitter
+from email.mime.text import MIMEText
 
 execfile("alarm.inc")
 folder  = '/var/spool/asterisk/alarm'
@@ -41,18 +42,35 @@ class UsingTwitter(object):
 			  access_token_secret=token_secret)
 
     def send(self, alarm_out):
-	sendfile = open(alarm_out)
-	status = self.api.PostUpdates(sendfile.read())
+	try:
+		sendfile = open(alarm_out)
+		status = self.api.PostUpdates(sendfile.read())
+	except:
+		logfile.write("Could not send via twitter.")
+
 
 
 ''' Class UsingSendmail interface is used to send notifications by
     email.'''
 class UsingSendmail(object):
-    def __init__(self, account, fromuser, touser):
-	pass
+    def __init__(self, fromuser, touser):
+	self.from_address = fromuser
+	self.to_address = touser
 
     def send(self, alarm_out):
-	pass
+	try:
+		sendfile = open(alarm_out)
+		msg = MIMEText(sendfile.read())
+		msg["From"] = self.from_address
+		msg["To"] = self.to_address
+		msg["Subject"] = "PIAF:Alarm notification"
+		handle = os.popen("/usr/sbin/sendmail -t", "w")
+		handle.write(msg.as_string())
+		status = handle.close()
+		if status != 0:
+			logfile.write("Sendmail exit status - %s" % status)
+	except:
+		logfile.write("Could not send via twitter.")
 
 
 ''' Class UsingScreen interface is used to display the notifications
@@ -85,8 +103,8 @@ class Alarm(object):
 	if( parser.get('general', 'payload-type') == 'twitter' ):
 		self.payload = UsingTwitter(parser.get('payload', 'consumerkey'), parser.get('payload', 'consumersecret'),
 				       parser.get('payload', 'tokenkey'), parser.get('payload', 'tokensecret'))
-	elif ( parser.get('general', 'payload-type') == 'sendmail' ):
-		self.payload = UsingSendmail(parser.get('payload', 'account'), parser.get('payload', 'fromuser'), parser.get('payload', 'touser'))
+	elif ( parser.get('general', 'payload-type') == 'email' ):
+		self.payload = UsingSendmail(parser.get('payload', 'fromemail'), parser.get('payload', 'toemail'))
 	else:
 		self.payload = UsingScreen()
 	self.zones = []
