@@ -4,7 +4,7 @@ dscpiaf
 Setup PIAF (asterisk) to send alarm events
 
 This project holds a python script sendalarm.py which can be used within asterisk based installations to send alarm notifications via twitter, email or local file. The script is driven by a configuration file which should reside at /root/.alarmconf by default. Copy the script and the include file alarm.inc and change the permission bits to make it an executable or load it by the python interpretter.
-> Usage: python ./sendalarm.py -c config_file -d alarm_folder -o output_file -l log_file
+> Usage: python ./sendalarm.py [-c config_file] [-d alarm_folder] [-o output_file] [-l log_file]
 
 Example configuration file
 
